@@ -1,3 +1,15 @@
+# v0.0.2 (Mon Mar 03 2025)
+
+#### ⚠️ Pushed to `main`
+
+- Update docker-compose.yml ([@aeternuspolyphagus](https://github.com/aeternuspolyphagus))
+
+#### Authors: 1
+
+- [@aeternuspolyphagus](https://github.com/aeternuspolyphagus)
+
+---
+
 # v0.0.1 (Mon Mar 03 2025)
 
 :tada: This release contains work from a new contributor! :tada:
