@@ -1,50 +1,37 @@
+version: "3.3"
+
 services:
-  app:
-    stdin_open: true
-    tty: true
-    image: container-fxdokz4
-    build:
-      context: ./src
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    command:
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.dokemon.acme.tlschallenge=true"
+      - "--certificatesresolvers.dokemon.acme.email=aeternuspolyphagus@gmail.com"
+      - "--certificatesresolvers.dokemon.acme.storage=/letsencrypt/dokemon.json"
     ports:
-      - "5000:5000"
+      - "443:443"
+      - "8080:8080"
     volumes:
-      - type: bind
-        source: ./src/web
-        target: /usr/src/app
-    environment:
-      ALLOWED_HOSTS: "127.0.0.1,localhost"
-      DATABASE_URL: mysql2=//app_user=password@db=3306/app_database?pool=5&useUnicode=true&characterEncoding=UTF-8
-      DB_ENGINE: django.db.backends.mysql
-      DB_HOST: db
-      DB_NAME: app_database
-      DB_PASSWORD: password
-      DB_PORT: 3306
-      DB_USER: app_user
-      DEBUG: "True"
-      SECRET_KEY: local_development
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
-
-  db:
-    # This database service is used only for local development
-    # Note: It may be preferable to use an online database service
-    # https://db.anotherwebservice.com/
-    image: mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_USER: app_user
-      MYSQL_PASSWORD: password
-      MYSQL_DATABASE: app_database
-
-  phpmyadmin:
-    # To view the database during local development
-    # Visit http://127.0.0.1:8080/
-    # Server is: db
-    # Username is same as MYSQL_USER
-    # Password is same as MYSQL_PASSWORD
-    image: phpmyadmin
-    restart: always
+  dokemon:
+    image: productiveops/dokemon:latest
+    container_name: dokemon
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dokemon.rule=Host(`container-fxdokz4.containers.anotherwebservice.com`)"
+      - "traefik.http.routers.dokemon.entrypoints=websecure"
+      - "traefik.http.routers.dokemon.tls.certresolver=dokemon"
     ports:
-      - 8080:80
-    environment:
-      PMA_ARBITRARY: "1"
+      - 9090:9090
+    volumes:
+      - ./dokemondata:/data
+      - /var/run/docker.sock:/var/run/docker.sock
